@@ -5,6 +5,9 @@
 // ======================================================================
 
 #include "Tester.hpp"
+#ifdef USES_OPENCV
+#include <opencv2/opencv.hpp>
+#endif
 
 #define INSTANCE 0
 #define MAX_HISTORY_SIZE 10
@@ -18,7 +21,9 @@ namespace Payload {
 
 Tester ::Tester()
     : CameraGTestBase("Tester", MAX_HISTORY_SIZE), component("Camera") {
+#ifdef USES_OPENCV
   component.m_capture.open("/Users/vbai/fprime-stuff/fprime-system-reference/SystemReference/Payload/Camera/test/ut/TEST_1.mov");
+#endif
   this->initComponents();
   this->connectPorts();
 }
@@ -57,20 +62,22 @@ void Tester::testCameraActionProcess() {
 
 
 void Tester::testBlankFrame() {
+#ifdef USES_OPENCV
   cv::Mat frame;
   do{
     this->component.m_capture.read(frame);
   }while(!frame.empty());
-
   CameraAction cameraAction = CameraAction::PROCESS;
   this->sendCmd_TakeAction(0, 0, cameraAction);
   this->component.doDispatch();
   ASSERT_EVENTS_SIZE(1);
   ASSERT_EVENTS_BlankFrame_SIZE(1);
+#endif
 }
 
 void Tester::testBadBufferRawImg() {
     m_bufferSize = 0;
+#ifdef USES_OPENCV
     cv::Mat frame;
     this->component.m_capture.read(frame);
     U32 imgSize = frame.rows * frame.cols * frame.elemSize();
@@ -81,6 +88,7 @@ void Tester::testBadBufferRawImg() {
     ASSERT_EVENTS_SIZE(1);
     ASSERT_EVENTS_InvalidBufferSizeError(0, m_bufferSize, imgSize);
     ASSERT_EVENTS_InvalidBufferSizeError_SIZE(1);
+#endif
 }
 
 

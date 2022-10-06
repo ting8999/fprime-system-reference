@@ -9,7 +9,6 @@
 
 #include "GTestBase.hpp"
 #include "SystemReference/Payload/ImageProcessor/ImageProcessor.hpp"
-#include "opencv2/opencv.hpp"
 
 namespace Payload {
 

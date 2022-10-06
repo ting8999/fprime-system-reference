@@ -5,6 +5,9 @@
 // ======================================================================
 
 #include "Tester.hpp"
+#ifdef USES_OPENCV
+#include "opencv2/opencv.hpp"
+#endif
 
 #define INSTANCE 0
 #define MAX_HISTORY_SIZE 10

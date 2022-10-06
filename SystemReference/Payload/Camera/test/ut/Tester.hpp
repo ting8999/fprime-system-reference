@@ -10,7 +10,6 @@
 #include "GTestBase.hpp"
 #include "SystemReference/Payload/Camera/Camera.hpp"
 #include <Fw/Types/BasicTypes.hpp>
-#include <opencv2/opencv.hpp>
 
 
 namespace Payload {
