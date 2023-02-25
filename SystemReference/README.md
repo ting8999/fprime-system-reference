@@ -37,7 +37,7 @@ To build OpenCV in order to run the camera subsystem in this project the user wi
 first create a build directory, make the build directory current and then run the following command: 
 
 ```
-cmake -D CMAKE_BUILD_TYPE=RELEASE -DCMAKE_TOOLCHAIN_FILE=<path to fprime-system-reference>/fprime/cmake/toolchain/raspberrypi.cmake -DBUILD_SHARED_LIBS=OFF -DBUILD_TESTS=ON -DBUILD_DOCS=OFF -DWITH_V4L=ON -DWITH_LIBV4L=ON -DCMAKE_INSTALL_PREFIX=opt/ -DOpenCV_DIR=/Payload/build/ -DBUILD_SHARED_LIBS=OFF ../opencv/```
+cmake -DCMAKE_BUILD_TYPE=RELEASE -DCMAKE_TOOLCHAIN_FILE=<path to fprime-system-reference>/fprime/cmake/toolchain/raspberrypi.cmake -DBUILD_SHARED_LIBS=OFF -DBUILD_TESTS=ON -DBUILD_DOCS=OFF -DWITH_V4L=ON -DWITH_LIBV4L=ON -DCMAKE_INSTALL_PREFIX=opt/ -DOpenCV_DIR=/Payload/build/ -DBUILD_SHARED_LIBS=OFF ../opencv/```
 ```
 Then run make in the build directory: 
 ```
