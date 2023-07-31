@@ -260,6 +260,13 @@ module SystemReference {
 
     }
 
+    
+    instance actuator: Gnc.Actuator base id 0x1300 \
+      queue size Default.queueSize\
+      stack size Default.stackSize \
+      priority 100
+    
+
 #  instance radio: Com.XBee base id 0x1200 \
 #    queue size Default.queueSize \
 #    stack size Default.stackSize \
@@ -466,10 +473,16 @@ module SystemReference {
 
   instance imuI2cBus: Drv.LinuxI2cDriver  base id 0x4D00 {
     phase Fpp.ToCpp.Phases.configComponents """
-    if (!imuI2cBus.open("/dev/i2c-0")) {
+    if (!imuI2cBus.open("/dev/i2c-1")) {
          Fw::Logger::logMsg("[ERROR] Failed to open I2C device\\n");
     }
     """
   }
-
+ 
+  instance pwmDriver: Drv.LinuxPwmDriver base id 0x4F00 {
+    phase Fpp.ToCpp.Phases.configComponents """
+        pwmDriver.open();
+    """
+  }
+  
 }

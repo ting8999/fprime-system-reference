@@ -22,6 +22,7 @@ module SystemReference {
     # ----------------------------------------------------------------------
 
     instance $health
+    instance actuator
     instance blockDrv
     instance chanTlm
     instance cmdDisp
@@ -39,6 +40,7 @@ module SystemReference {
     instance comBufferManager
     instance linuxTime
     instance prmDb
+    instance pwmDriver
     instance rateGroup1Comp
     instance rateGroup2Comp
     instance rateGroup3Comp
@@ -108,7 +110,8 @@ module SystemReference {
       rateGroup1Comp.RateGroupMemberOut[1] -> fileDownlink.Run
       rateGroup1Comp.RateGroupMemberOut[2] -> systemResources.run
       rateGroup1Comp.RateGroupMemberOut[3] -> imu.Run
-#      rateGroup1Comp.RateGroupMemberOut[4] -> radio.run
+      #rateGroup1Comp.RateGroupMemberOut[4] -> radio.run
+      #rateGroup1Comp.RateGroupMemberOut[5] -> actuator.run #remove when driving by imu data
 
       # Rate group 2
       rateGroupDriverComp.CycleOut[Ports_RateGroups.rateGroup2] -> rateGroup2Comp.CycleIn
@@ -150,6 +153,13 @@ module SystemReference {
     connections I2c {
         imu.read -> imuI2cBus.read
         imu.write -> imuI2cBus.write
+    }
+
+    connections Actuator{
+        imu.imuAccelOut -> actuator.imuAccelIn
+        actuator.pwmSetOnTime -> pwmDriver.onTime
+        actuator.pwmSetEnable -> pwmDriver.enableDisable
+        actuator.pwmSetPeriod -> pwmDriver.period
     }
 
     connections Camera {
