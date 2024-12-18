@@ -48,7 +48,6 @@ module SystemReference {
     instance systemResources
     instance imu
     instance imuI2cBus
-    instance camera
     instance saveImageBufferLogger
     # ----------------------------------------------------------------------
     # Pattern graph specifiers
@@ -153,12 +152,6 @@ module SystemReference {
         imu.write -> imuI2cBus.write
     }
 
-    connections Camera {
-         camera.allocate -> comBufferManager.bufferGetCallee
-         camera.deallocate -> comBufferManager.bufferSendIn
-         camera.$save -> saveImageBufferLogger.bufferSendIn
-         saveImageBufferLogger.bufferSendOut -> comBufferManager.bufferSendIn
-    }
 
   }
 

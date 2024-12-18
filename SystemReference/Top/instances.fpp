@@ -191,18 +191,6 @@ module SystemReference {
     """
   }
 
-  instance camera: Payload.Camera base id 0x0E00 \
-    queue size Default.queueSize \
-    stack size Default.stackSize \
-    priority 100 \
-    {
-       phase Fpp.ToCpp.Phases.configComponents"""
-       if (!camera.open(0)){
-           Fw::Logger::log("[ERROR] Failed to open camera device\\n");
-       }
-       """
-    }
-
   # saves two images before closing
   instance saveImageBufferLogger: Svc.BufferLogger base id 0x0F00 \
     queue size 30 \
