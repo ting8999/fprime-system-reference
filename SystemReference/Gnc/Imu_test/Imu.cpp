@@ -5,7 +5,7 @@
 // ======================================================================
 
 #include "FpConfig.hpp"
-#include "SystemReference/Gnc/imu_test/Imu.hpp"
+#include "SystemReference/Gnc/Imu_test/Imu.hpp"
 
 namespace Gnc {
 
@@ -48,6 +48,18 @@ namespace Gnc {
         FwOpcodeType opCode,
         U32 cmdSeq,
         Gnc::PowerState powerState
+    )
+  {
+    // TODO
+    this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
+  }
+
+  // For csv log
+  void Imu ::
+    SetCsvState_cmdHandler(
+        FwOpcodeType opCode,
+        U32 cmdSeq,
+        Gnc::CsvState csvState
     )
   {
     // TODO

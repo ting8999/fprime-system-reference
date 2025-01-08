@@ -7,7 +7,7 @@
 #ifndef Gnc_Imu_HPP
 #define Gnc_Imu_HPP
 
-#include "SystemReference/Gnc/imu_test/ImuComponentAc.hpp"
+#include "SystemReference/Gnc/Imu_test/ImuComponentAc.hpp"
 
 namespace Gnc {
 
@@ -56,6 +56,16 @@ namespace Gnc {
           FwOpcodeType opCode, //!< The opcode
           U32 cmdSeq, //!< The command sequence number
           Gnc::PowerState powerState
+      ) override;
+
+      // For csv
+      //! Handler implementation for command SetCsvState
+      //!
+      //! Command to control CSV state
+      void SetCsvState_cmdHandler(
+          FwOpcodeType opCode, //!< The opcode
+          U32 cmdSeq, //!< The command sequence number
+          Gnc::CsvState csvState
       ) override;
 
   };

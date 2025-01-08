@@ -1,6 +1,8 @@
 module Gnc {
     @ The power state enumeration
     enum PowerState {OFF, ON}
+    @ The CSV state enumeration
+    enum CsvState {OFF, ON}
 
     @ 3-tuple type used for telemetry
     array Vector = [3] F32
@@ -54,6 +56,12 @@ module Gnc {
             powerState: PowerState
         ) \
         opcode 0x01
+
+        @ Command to control CSV state
+        guarded command SetCsvState(
+            csvState: CsvState
+        ) \
+        opcode 0x02
 
         # ----------------------------------------------------------------------
         # Events
