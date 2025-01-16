@@ -8,6 +8,8 @@
 #define Gnc_Imu_HPP
 
 #include "SystemReference/Gnc/Imu_test/ImuComponentAc.hpp"
+#include <fstream>
+#include <string>
 
 namespace Gnc {
 
@@ -17,17 +19,48 @@ namespace Gnc {
 
     public:
 
-      // ----------------------------------------------------------------------
-      // Component construction and destruction
-      // ----------------------------------------------------------------------
+    // ----------------------------------------------------------------------
+    // Constants and Types
+    // ----------------------------------------------------------------------
 
-      //! Construct Imu object
-      Imu(
-          const char* const compName //!< The component name
-      );
+    // Values for the static consts were attained from the data sheet of the
+    // MPU6050
 
-      //! Destroy Imu object
-      ~Imu();
+    //! The I2C device addresses
+    struct I2cDevAddr {
+      enum T {
+        //! The I2C device address with AD0 set to zero
+        AD0_0 = 0x68,
+        //! The I2C device address with AD0 set to one
+        AD0_1 = 0x69
+      };
+    };
+    static const U8 POWER_MGMT_ADDR = 0x6B;
+    static const U16 IMU_MAX_DATA_SIZE_BYTES = 6;
+    static const U16 IMU_REG_SIZE_BYTES = 1;
+    static const U8 IMU_RAW_ACCEL_ADDR = 0x3B;
+    static const U8 IMU_RAW_GYRO_ADDR = 0x43;
+    static const U8 GYRO_CONFIG_ADDR = 0x1B;
+    static const U8 ACCEL_CONFIG_ADDR = 0x1C;
+    static const U8 POWER_ON_VALUE = 0;
+    static const U8 POWER_OFF_VALUE = 0x40;
+    static constexpr float accelScaleFactor = 16384.0f;
+    static constexpr float gyroScaleFactor = 131.072f;
+    
+    // ----------------------------------------------------------------------
+    // Construction, initialization, and destruction
+    // ----------------------------------------------------------------------
+
+    //! Construct object Imu
+    Imu(const char* const compName);
+
+    //! Initialize object Imu
+    void init(const NATIVE_INT_TYPE instance = 0);
+
+    //! Destroy object Imu
+    ~Imu();
+
+    void setup(I2cDevAddr::T devAddress);
 
     PRIVATE:
 
@@ -35,13 +68,8 @@ namespace Gnc {
       // Handler implementations for user-defined typed input ports
       // ----------------------------------------------------------------------
 
-      //! Handler implementation for Run
-      //!
-      //! Port to send telemetry to ground
-      void Run_handler(
-          FwIndexType portNum, //!< The port number
-          U32 context //!< The call order
-      ) override;
+      // void Run_handler(const FwIndexType portNum, U32 context) override;
+      void Run_handler(const NATIVE_INT_TYPE portNum, NATIVE_UINT_TYPE context);
 
     PRIVATE:
 
@@ -49,25 +77,89 @@ namespace Gnc {
       // Handler implementations for commands
       // ----------------------------------------------------------------------
 
-      //! Handler implementation for command PowerSwitch
-      //!
+      //! Implementation for PowerSwitch command handler
       //! Command to turn on the device
-      void PowerSwitch_cmdHandler(
-          FwOpcodeType opCode, //!< The opcode
-          U32 cmdSeq, //!< The command sequence number
-          Gnc::PowerState powerState
-      ) override;
+      // void PowerSwitch_cmdHandler(FwOpcodeType opCode, U32 cmdSeq, Gnc::PowerState powerState) override;
+      void PowerSwitch_cmdHandler(const FwOpcodeType opCode, const U32 cmdSeq, PowerState powerState);
 
       // For csv
       //! Handler implementation for command SetCsvState
-      //!
       //! Command to control CSV state
-      void SetCsvState_cmdHandler(
-          FwOpcodeType opCode, //!< The opcode
-          U32 cmdSeq, //!< The command sequence number
-          Gnc::CsvState csvState
-      ) override;
+      // void SetCsvState_cmdHandler(FwOpcodeType opCode, U32 cmdSeq, Gnc::CsvState csvState) override;
+      void SetCsvState_cmdHandler(const FwOpcodeType opCode, const U32 cmdSeq, Gnc::CsvState csvState);
 
+      // ----------------------------------------------------------------------
+      // Helper Functions
+      // ----------------------------------------------------------------------
+
+      /**
+       * \brief sets up the IMU to know what register the next read should be from
+       *
+       * The MPU-6050 requires a write call with a register's address before a read will function correctly. This helper
+       * sets up that read address by writing it to the IMU via the I2C write port.
+       *
+       * \param reg: IMU internal address to the first register to be read
+       * \return: I2C from the write call
+       */
+      Drv::I2cStatus setupReadRegister(U8 reg);
+
+      /**
+       * \brief reads a block of registers from the IMU
+       *
+       * This function starts by writing the startRegister to the IMU by passing it to `setupReadRegister`. It then calls
+       * the read port of the I2C bus to read data from the IMU. It will read `buffer.getSize()` bytes from the I2C device
+       * and as such the caller must set this up.
+       *
+       * \param startRegister: register address to start reading from
+       * \param buffer: buffer to read into. Determines size of read.
+       * \return: I2C status of transactions
+       */
+      Drv::I2cStatus readRegisterBlock(U8 startRegister, Fw::Buffer& buffer);
+
+      /**
+       * \brief unpacks a buffer into a vector with scaled elements
+       *
+       * This will unpack data from buffer into a Gnc::Vector type by unpacking 3x I16 values (in big endian format) and
+       * scales each by dividing by the scaleFactor provided.
+       *
+       * \param buffer: buffer wrapping data, must contain at least 6 byes (3x I16)
+       * \param scaleFactor: scale factor to divide each element by
+       * \return initalized vector
+       */
+      Vector deserializeVector(Fw::Buffer& buffer, F32 scaleFactor);
+
+      //! Configure the accelerometer and gyroscope
+      //!
+      void config();
+
+      //! Turn power on/off of device
+      //!
+      void power(PowerState powerState);
+
+      //! Read, telemeter, and update local compy of accelerometer data
+      //!
+      void updateAccel();
+
+      //! Read, telemeter, and update local compy of gyroscope data
+      //!
+      void updateGyro();
+
+      std::ofstream csvFile;  //!< 用於寫入的 CSV 文件流
+      bool csvLoggingEnabled; //!< 用於控制是否啟用 CSV 日誌
+      void writeToCsv(const std::string& type, const Gnc::Vector& vector);
+      Gnc::CsvState csv_trigger;  // 用於儲存 CSV 狀態
+
+      // ----------------------------------------------------------------------
+      // Member Variables
+      // ----------------------------------------------------------------------
+      I2cDevAddr::T m_i2cDevAddress; //!< Stored device address
+      PowerState::t m_power; //!< Power state of device
+      // CsvState::csv_trigger;
+
+      enum class CsvError {
+      FILE_NOT_OPEN = 1,
+      UNKNOWN_ERROR = 2
+};
   };
 
 }
