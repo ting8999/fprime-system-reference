@@ -148,6 +148,8 @@ namespace Gnc {
       bool csvLoggingEnabled; //!< 用於控制是否啟用 CSV 日誌
       void writeToCsv(const std::string& type, const Gnc::Vector& vector);
       Gnc::CsvState csv_trigger;  // 用於儲存 CSV 狀態
+      void logCsvStarted();
+      void logCsvStopped();
 
       // ----------------------------------------------------------------------
       // Member Variables
@@ -159,7 +161,13 @@ namespace Gnc {
       enum class CsvError {
       FILE_NOT_OPEN = 1,
       UNKNOWN_ERROR = 2
-};
+      };
+      enum class CsvStatus {
+          CSV_OK = 0,
+          CSV_OPEN_ERR = 1,
+          CSV_WRITE_ERR = 2
+      };
+
   };
 
 }

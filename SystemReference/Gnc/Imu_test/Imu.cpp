@@ -53,23 +53,26 @@ namespace Gnc {
     this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
   }
 
-  void Imu::SetCsvState_cmdHandler(const FwOpcodeType opCode, const U32 cmdSeq, Gnc::CsvState csvState) {
-      if (csvState == CsvState::ON) {
-          csvLoggingEnabled = true;
-          csvFile.open("imu_data.csv", std::ios::out | std::ios::app);
-          if (!csvFile.is_open()) {
-              this->log_WARNING_HI_SetUpConfigError(static_cast<int>(CsvError::FILE_NOT_OPEN));
-          }
-      } else {
-          csvLoggingEnabled = false;
-
-          if (csvFile.is_open()) {
-              csvFile.close();
-          }
-      }
-
-      this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
-  }
+    void Imu::SetCsvState_cmdHandler(const FwOpcodeType opCode, const U32 cmdSeq, Gnc::CsvState csvState) {
+        if (csvState == CsvState::ON) {
+            csvLoggingEnabled = true;
+            csvFile.open("imu_data.csv", std::ios::out | std::ios::trunc);
+            if (!csvFile.is_open()) {
+                // 記錄 CSV 打開錯誤事件
+                this->log_WARNING_HI_CsvError(Gnc::CsvStatus::CSV_OPEN_ERR);
+            } else {
+                this->log_ACTIVITY_HI_CsvStarted();
+                csvFile << "acc_x,acc_y,acc_z,gyro_x,gyro_y,gyro_z" << std::endl;
+            }
+        } else {
+            csvLoggingEnabled = false;
+            if (csvFile.is_open()) {
+                csvFile.close();
+                this->log_ACTIVITY_HI_CsvStopped();
+            }
+        }
+        this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
+    }
 
 
 // ----------------------------------------------------------------------
@@ -160,14 +163,18 @@ void Imu::writeToCsv(const std::string& type, const Gnc::Vector& vector) {
     if (!csvLoggingEnabled || !csvFile.is_open()) {
         return;
     }
-    csvFile << type << "," 
-            << vector[0] << "," 
-            << vector[1] << "," 
-            << vector[2] << std::endl;
+    if (type == "Accel") {
+        csvFile << vector[0] << "," 
+                << vector[1] << "," 
+                << vector[2]; // Accel 寫入，Gyro 留空
+    } else if (type == "Gyro") {
+        csvFile << vector[0] << "," 
+                << vector[1] << "," 
+                << vector[2] << std::endl; // Gyro 寫入，Accel 留空
+    }
 }
 
-
-void Imu ::updateAccel() {
+void Imu::updateAccel() {
     U8 data[IMU_MAX_DATA_SIZE_BYTES];
     Fw::Buffer buffer(data, sizeof data);
 
@@ -178,13 +185,13 @@ void Imu ::updateAccel() {
     if ((status == Drv::I2cStatus::I2C_OK) && (buffer.getSize() == 6) && (buffer.getData() != nullptr)) {
         Gnc::Vector vector = deserializeVector(buffer, accelScaleFactor);
         this->tlmWrite_accelerometer(vector);
-        writeToCsv("Accel", vector);
+        writeToCsv("Accel", vector); // 指定類型為 Accel
     } else {
         this->log_WARNING_HI_TelemetryError(status);
     }
 }
 
-void Imu ::updateGyro() {
+void Imu::updateGyro() {
     U8 data[IMU_MAX_DATA_SIZE_BYTES];
     Fw::Buffer buffer(data, sizeof data);
 
@@ -195,9 +202,10 @@ void Imu ::updateGyro() {
     if ((status == Drv::I2cStatus::I2C_OK) && (buffer.getSize() == 6) && (buffer.getData() != nullptr)) {
         Gnc::Vector vector = deserializeVector(buffer, gyroScaleFactor);
         this->tlmWrite_gyroscope(vector);
-        writeToCsv("Gyro", vector);
+        writeToCsv("Gyro", vector); // 指定類型為 Gyro
     } else {
         this->log_WARNING_HI_TelemetryError(status);
     }
 }
+
 }  // end namespace Gnc

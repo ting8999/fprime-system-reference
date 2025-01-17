@@ -3,6 +3,13 @@ module Gnc {
     enum PowerState {OFF, ON}
     @ The CSV state enumeration
     enum CsvState {OFF, ON}
+    @ The CSV status enumeration
+    enum CsvStatus {
+        CSV_OK = 0 @< Operation successful
+        CSV_OPEN_ERR = 1 @< Failed to open the CSV file
+        CSV_WRITE_ERR = 2 @< Failed to write data to the CSV file
+        CSV_CLOSE_ERR = 3 @< Failed to close the CSV file
+    }
 
     @ 3-tuple type used for telemetry
     array Vector = [3] F32
@@ -94,6 +101,24 @@ module Gnc {
         ) \
         severity activity high \
         format "The device has been turned {}"
+
+        @ CSV logging failed
+        event CsvError(
+            writeStatus: CsvStatus @< CSV error status
+        ) \
+        severity warning high \
+        format "CSV logging failed with status: {}"
+
+        @ CSV logging started
+        event CsvStarted() \
+        severity activity high \
+        format "CSV logging has started."
+
+
+        @ CSV logging stopped
+        event CsvStopped() \
+        severity activity high \
+        format "CSV logging has stopped."
 
         # ----------------------------------------------------------------------
         # Telemetry
