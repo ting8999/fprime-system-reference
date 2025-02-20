@@ -56,7 +56,7 @@ namespace Gnc {
     void Imu::SetCsvState_cmdHandler(const FwOpcodeType opCode, const U32 cmdSeq, Gnc::CsvState csvState) {
         if (csvState == CsvState::ON) {
             csvLoggingEnabled = true;
-            csvFile.open("imu_data.csv", std::ios::out | std::ios::trunc);
+            csvFile.open("imu_data.csv", std::ios::out | std::ios::app);
             if (!csvFile.is_open()) {
                 // 記錄 CSV 打開錯誤事件
                 this->log_WARNING_HI_CsvError(Gnc::CsvStatus::CSV_OPEN_ERR);
